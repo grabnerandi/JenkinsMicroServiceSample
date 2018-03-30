@@ -163,6 +163,7 @@
                             "# First: we download and install the Dynatrace OneAgent\n",
                             "yum update -y\n",
                             "yum install ruby wget -y\n",
+                            "yum install git -y\n",
                             "wget --no-check-certificate -O Dynatrace-OneAgent-Linux.sh \"", {
                                 "Ref": "DynatraceOneAgentURL"
                             }, "\"\n",
