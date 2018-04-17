@@ -8,29 +8,33 @@
 echo "Load Test Launched with the following settings PORT=$1, LOGFILE=$2, CHECKFORENDTESTFILE=$3, MAXTIMEINSECONDS=$4, STAGE=$5"  >> ./$2
 
 # Calculate how long this test maximum runs!
-startTime = `date +%s`
-timeSpan = $4
-endTime = timeSpan + startTime
+currTime=`date +%s`
+timeSpan=$4
+endTime=$(($timeSpan+$currTime))
 
-while [ ! -f ./$3 -o (( `date +%s` < endTime ))];
+while [ ! -f ./$3 -a $currTime -lt $endTime ];
 do
   # In Production we sleep less which means we will have more load
   # In Testing we also add the x-dynatrace HTTP Header so that we can demo our "load testing integration" options using Request Attributes!
+
   if [[ $5 == *"Production"* ]]; then
-    curl -s "http://localhost:$1/" -o nul &> $2
-    curl -s "http://localhost:$1/version" -o nul &> $2
-    curl -s "http://localhost:$1/api/echo?text=This is from a production user" -o nul &> $2
-    curl -s "http://localhost:$1/api/invoke?url=http://www.dynatrace.com" -o nul &> $2
-    curl -s "http://localhost/api/invoke?url=http://blog.dynatrace.com" -o nul &> $2
-
     sleep 2;
-  else 
-    curl -s "http://localhost/" -H "x-dynatrace: NA=Test.Homepage;" -o nul &> $2
-    curl -s "http://localhost/version" -H "x-dynatrace: NA=Test.Version;" -o nul &> $2
-    curl -s "http://localhost/api/echo?text=This is from a testing script" -H "x-dynatrace: NA=Test.Echo;" -o nul &> $2
-    curl -s "http://localhost/api/invoke?url=http://www.dynatrace.com" -H "x-dynatrace: NA=Test.Invoke;" -o nul &> $2
-
+    startTime=`date +%s`
+    curl -s "http://localhost:$1/" -o /dev/nul
+    curl -s "http://localhost:$1/version" -o /dev/nul
+    curl -s "http://localhost:$1/api/echo?text=This is from a production user" -o /dev/nul
+    curl -s "http://localhost:$1/api/invoke?url=http://www.dynatrace.com" -o /dev/nul
+    curl -s "http://localhost/api/invoke?url=http://blog.dynatrace.com" -o /dev/nul
+  else
     sleep 5;
+    startTime=`date +%s`
+    curl -s "http://localhost/" -H "x-dynatrace: NA=Test.Homepage;" -o /dev/nul
+    curl -s "http://localhost/version" -H "x-dynatrace: NA=Test.Version;" -o /dev/nul
+    curl -s "http://localhost/api/echo?text=This is from a testing script" -H "x-dynatrace: NA=Test.Echo;" -o /dev/nul
+    curl -s "http://localhost/api/invoke?url=http://www.dynatrace.com" -H "x-dynatrace: NA=Test.Invoke;" -o /dev/nul
   fi
+
+  currTime=`date +%s`
+  echo "$currTime;$(($currTime-$startTime))" >> $2
 done;
 exit 0
